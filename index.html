@@ -679,7 +679,7 @@ function subscribeToNotifications() {
         if (permission !== 'granted') {
             showToast('Active les notifications dans les parametres', 'error'); return;
         }
-        navigator.serviceWorker.register('/planning-rbf/firebase-messaging-sw.js')
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
         .then(function(swReg) {
             // Desabonner l'ancien (fix iPhone "key error" + anciens abonnements)
             return swReg.pushManager.getSubscription().then(function(existingSub) {
@@ -1342,7 +1342,7 @@ function printFullWeek() {
     });
 
     html += '</tbody></table>';
-    html += '<div class="mix-footer"><span>RBF Planning — Document interne confidentiel</span><span>bastien-rbf.github.io/planning-rbf</span></div>';
+    html += '<div class="mix-footer"><span>RBF Planning — Document interne confidentiel</span><span>planning.rbf38.fr</span></div>';
     html += '</div>';
 
     var area = document.getElementById('rbf-week-print-area');
@@ -2010,7 +2010,7 @@ function buildPrintBody(lt, isInterne, formatDateFR) {
     enTete.style.cssText = 'width:100%;border-collapse:collapse;border:2px solid #1b2e58;margin-bottom:0;';
     var r1 = document.createElement('tr');
     var tdLogo = document.createElement('td'); tdLogo.rowSpan=3; tdLogo.style.cssText='border:1px solid #1b2e58;padding:8px;width:120px;text-align:center;vertical-align:middle;';
-    var logoImg = document.createElement('img'); logoImg.src='https://bastien-rbf.github.io/planning-rbf/logo.png'; logoImg.style.cssText='width:100px;';
+    var logoImg = document.createElement('img'); logoImg.src='logo.png'; logoImg.style.cssText='width:100px;';
     logoImg.onerror=function(){this.style.display='none';tdLogo.textContent='ROSSET BOULON & FILS';tdLogo.style.fontWeight='bold';tdLogo.style.fontSize='11px';};
     tdLogo.appendChild(logoImg);
     var tdChL=document.createElement('td'); tdChL.style.cssText='border:1px solid #1b2e58;padding:4px 8px;font-size:11px;font-weight:bold;color:#1b2e58;white-space:nowrap;width:140px;text-decoration:underline;'; tdChL.textContent='CHANTIER :';
@@ -3391,7 +3391,7 @@ firebase.auth().onAuthStateChanged(function(user) {
    PWA
 ========================================= */
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/planning-rbf/firebase-messaging-sw.js', {scope:'/planning-rbf/'})
+    navigator.serviceWorker.register('/firebase-messaging-sw.js', {scope:'/'})
         .then(function(r){console.log('SW:',r.scope);}).catch(function(e){console.warn(e);});
 }
 var deferredPrompt=null;

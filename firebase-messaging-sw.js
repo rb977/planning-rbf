@@ -9,7 +9,7 @@ var FIREBASE_DB_URL = 'https://rbf-transport-default-rtdb.europe-west1.firebased
 self.addEventListener('push', function(event) {
     var defaultTitle = 'RBF Planning';
     var defaultBody  = 'Mise a jour du planning';
-    var icon         = '/planning-rbf/icon.png.png';
+    var icon         = '/icon.png.png';
 
     function showNotif(title, body) {
         var ua       = (self.navigator && self.navigator.userAgent) || '';
@@ -20,7 +20,7 @@ self.addEventListener('push', function(event) {
             badge             : icon,
             vibrate           : [200, 100, 200],
             requireInteraction: isMobile,
-            data              : { url: 'https://bastien-rbf.github.io/planning-rbf/' }
+            data              : { url: 'https://planning.rbf38.fr/' }
         });
     }
 
@@ -62,7 +62,7 @@ self.addEventListener('notificationclick', function(event) {
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
             for (var c of list) { if ('focus' in c) return c.focus(); }
-            if (clients.openWindow) return clients.openWindow('https://bastien-rbf.github.io/planning-rbf/');
+            if (clients.openWindow) return clients.openWindow('https://planning.rbf38.fr/');
         })
     );
 });
