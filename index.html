@@ -185,7 +185,7 @@ if ('caches' in window) {
             <img src="logo.png" alt="RBF" style="width:150px;margin-bottom:20px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <button class="btn-main" style="background:var(--blue);color:white;grid-column:span 2;" onclick="askCode('admin')">BUREAU / RH</button>
-                <button class="btn-main" style="background:var(--success);color:white;grid-column:span 2;" onclick="askCode('depot')">STEPHANE</button>
+                <button class="btn-main" style="background:var(--success);color:white;grid-column:span 2;" onclick="askCode('depot')">DÉPÔT</button>
                 <button class="btn-main" style="background:#3b82f6;color:white;" onclick="askCode('interne')">DAMIEN</button>
                 <button class="btn-main" style="background:#f59e0b;color:white;" onclick="askCode('cedric')">CEDRIC</button>
                 <button class="btn-main" style="background:#8b5cf6;color:white;" onclick="askCode('jadiel')">JADIEL</button>
@@ -502,7 +502,7 @@ if ('caches' in window) {
                 <select id="lt-chauffeur" style="width:100%;padding:6px;border-radius:6px;border:1px solid #ddd;font-size:12px;margin-top:2px;box-sizing:border-box;">
                     <option value="INTERNE">DAMIEN</option>
                     <option value="CEDRIC">CÉDRIC</option>
-                    <option value="DEPOT">STÉPHANE</option>
+                    <option value="DEPOT">DÉPÔT</option>
                     <option value="EXTERNE">EXTERNE</option>
                 </select>
             </div>
@@ -875,7 +875,7 @@ var USER_EMAILS = {
     cedric : 'cedric@rbf-transport.fr',
     jadiel : 'jadiel@rbf-transport.fr',
     nicola : 'nicola@rbf-transport.fr',
-    depot  : 'depot@rbf-transport.fr'
+    depot  : 'cedric@rbf-transport.fr'
 };
 
 function askCode(u) {
@@ -1068,7 +1068,7 @@ function renderAdminView(hList) {
     var isDepot = state.curU === 'depot';
     var h = "";
     ALL_USERS.forEach(function(u) {
-        var dNmap={interne:'DAMIEN',depot:'STEPHANE',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT (3T500)'};
+        var dNmap={interne:'DAMIEN',depot:'DÉPÔT',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT (3T500)'};
         h += '<tr><td class="user-cell">'+(dNmap[u.id]||u.id.toUpperCase())+'</td>';
         for (var dI = 0; dI < 6; dI++) {
             h += '<td>';
@@ -1202,7 +1202,7 @@ function renderDriverView(days, hList) {
 ========================================= */
 function printFullWeek() {
     var isDepot = state.curU === 'depot';
-    var dNmap = {interne:'DAMIEN',depot:'STEPHANE',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT\n(3T500)'};
+    var dNmap = {interne:'DAMIEN',depot:'DÉPÔT',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT\n(3T500)'};
     var days = ['LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
     var dayDates = [];
     for (var i = 0; i < 6; i++) dayDates.push(fmtDate(getDateFromWeek(state.curW, state.curY, i)));
@@ -2876,7 +2876,7 @@ function showHistory() {
     document.getElementById('history-overlay').style.display = 'flex';
     document.getElementById('history-results').innerHTML = "<div style='text-align:center;padding:20px;'>Chargement...</div>";
 
-    var dNmap = {interne:'DAMIEN',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT (3T500)',depot:'STEPHANE'};
+    var dNmap = {interne:'DAMIEN',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT (3T500)',depot:'DÉPÔT'};
 
     Promise.all([
         db.ref('planning_v18').once('value'),
@@ -3229,7 +3229,7 @@ function rhChangeWeek(v) {
     renderRH();
 }
 function renderRH() {
-    var dNames2={interne:'DAMIEN',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',depot:'STEPHANE'};
+    var dNames2={interne:'DAMIEN',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',depot:'DÉPÔT'};
     var msel=document.getElementById('rh-month-select'); var month=msel?msel.value:'';
     // Pour les rapports : filtrer par semaine
     var weekDates = [];
