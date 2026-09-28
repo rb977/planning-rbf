@@ -662,10 +662,14 @@ var holidays = {};
 
 // Liste des utilisateurs du tableau
 var ALL_USERS = [
-    {id:'interne',s:4},{id:'externe',s:4},{id:'cedric',s:4},
+    {id:'interne',s:6},{id:'externe',s:4},{id:'cedric',s:4},
     {id:'divers',s:4},{id:'instal',s:4},{id:'3t500',s:4},
     {id:'jadiel',s:2},{id:'nicola',s:2}
 ];
+function getMaxSlots(userId) {
+    for (var i = 0; i < ALL_USERS.length; i++) if (ALL_USERS[i].id === userId) return ALL_USERS[i].s;
+    return 4;
+}
 
 /* =========================================
    NOTIFICATIONS PUSH (Web Push natif + Cloudflare Worker)
@@ -1150,7 +1154,7 @@ function renderDriverView(days, hList) {
     v.classList.remove('hidden');
     document.getElementById('v-admin').classList.add('hidden');
     v.innerHTML = "";
-    var maxS = (state.curU === 'jadiel' || state.curU === 'nicola') ? 2 : 4;
+    var maxS = getMaxSlots(state.curU);
     for (var dI = 0; dI < 6; dI++) {
         var dD   = getDateFromWeek(state.curW, state.curY, dI);
         var cards = "";
@@ -2580,7 +2584,7 @@ function openCopyMove() {
 
 function updateCmSlots() {
     var u = document.getElementById('cm-user-ed').value;
-    var maxS = (u === 'jadiel' || u === 'nicola') ? 2 : 4;
+    var maxS = getMaxSlots(u);
     var sel  = document.getElementById('cm-slot-ed');
     var cur  = parseInt(sel.value);
     sel.innerHTML = '';
@@ -3191,7 +3195,7 @@ function checkTodayConge() {
     var today=new Date(), dayIdx=today.getDay()-1;
     if (dayIdx<0||dayIdx>4) return;
     var todayW=getWeek(today), todayY=today.getFullYear();
-    var maxS=(state.curU==='jadiel'||state.curU==='nicola')?2:4;
+    var maxS=getMaxSlots(state.curU);
     var isConge=false;
     for (var s=1;s<=maxS;s++) { var dta=window.data[todayY+'_'+todayW+'_'+state.curU+'_'+dayIdx+'_s'+s]; if(dta&&dta.isConge) isConge=true; }
     document.getElementById('driver-buttons-container').classList.toggle('hidden', isConge);
