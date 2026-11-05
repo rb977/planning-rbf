@@ -191,6 +191,8 @@ if ('caches' in window) {
                 <button class="btn-main" style="background:#8b5cf6;color:white;" onclick="askCode('jadiel')">JADIEL</button>
                 <button class="btn-main" style="background:#64748b;color:white;" onclick="askCode('nicola')">NICOLA</button>
             </div>
+            <div style="margin:18px 0 10px;font-size:10px;font-weight:bold;color:#94a3b8;letter-spacing:0.5px;">CHEFS DE CHANTIER</div>
+            <div id="chefs-login-zone" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
         </div>
     </div>
 </div>
@@ -395,6 +397,13 @@ if ('caches' in window) {
             </div>
             <input type="text" id="e-conducteur-libre" class="hidden" style="width:100%;box-sizing:border-box;padding:9px;border-radius:8px;border:1px solid #ddd;font-size:12px;margin-top:6px;" placeholder="Prenom du conducteur (saisie libre)">
         </div>
+        <!-- Chef de chantier (acces appli + notifications) -->
+        <div id="zone-chef-chantier" class="hidden" style="margin-bottom:10px;">
+            <label style="font-size:10px;font-weight:bold;color:#0d9488;display:block;margin-bottom:4px;">CHEF DE CHANTIER :</label>
+            <select id="e-chef-chantier-sel" class="chef-chantier-sel" style="padding:9px;border-radius:8px;border:1px solid #ddd;background:#f0fdfa;font-size:12px;">
+                <option value="">-- Non specifie --</option>
+            </select>
+        </div>
         <textarea id="e-input" style="height:60px;padding:10px;border-radius:8px;border:1px solid #ddd;resize:vertical;" placeholder="Mission"></textarea>
         <div id="zone-matos" class="hidden">
             <textarea id="e-matos" style="height:50px;border:1px solid var(--success);padding:10px;border-radius:8px;margin-top:10px;resize:vertical;" placeholder="Logistique"></textarea>
@@ -540,6 +549,15 @@ if ('caches' in window) {
         <input type="text" id="new-chantier-nom" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:12px;font-size:13px;" placeholder="Ex: MICHELLIÈRES, DIDEROT LABS...">
         <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:4px;">ADRESSE :</label>
         <input type="text" id="new-chantier-adresse" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:16px;font-size:13px;" placeholder="Ex: 12 rue Diderot, Saint-Martin-d&#39;Hères">
+        <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:4px;">CONDUCTEUR DE TRAVAUX PAR DÉFAUT :</label>
+        <select id="new-chantier-conducteur" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:16px;font-size:13px;background:#f8fafc;">
+            <option value="">-- Non specifie --</option>
+        </select>
+        <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:4px;color:#0d9488;">CHEF DE CHANTIER PAR DÉFAUT :</label>
+        <select id="new-chantier-chef" class="chef-chantier-sel" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:16px;font-size:13px;background:#f0fdfa;">
+            <option value="">-- Non specifie --</option>
+        </select>
+        <div style="font-size:10px;color:#94a3b8;margin:-10px 0 16px;">Pré-remplis automatiquement dans une mission sur ce chantier (uniquement pour Transports Internes/Externes, Divers Interventions et Dépôt). Pour modifier un chantier existant, réutilisez "Ajouter un chantier" avec le même nom : ses infos seront mises à jour.</div>
         <button onclick="saveNewChantier()" class="btn-main" style="background:var(--success);color:white;margin-bottom:8px;">ENREGISTRER</button>
         <button onclick="document.getElementById('add-chantier-overlay').style.display='none'" style="width:100%;border:none;background:none;color:#94a3b8;cursor:pointer;padding:8px;">Annuler</button>
     </div>
@@ -671,6 +689,41 @@ function getMaxSlots(userId) {
     return 4;
 }
 
+// Lignes du planning visibles par les chefs de chantier (lecture seule)
+var CHEF_VISIBLE_ROWS = ['interne','externe','divers','3t500'];
+
+// Chefs de chantier : acces individuel en lecture, notifies quand leur nom
+// est renseigne dans le champ CONDUCTEUR DE TRAVAUX d'une mission.
+var CHEFS_CHANTIER = [
+    {id:'chefricardo', prenom:'RICARDO',  email:'rbf38.ricardo@gmail.com'},
+    {id:'chefcosta',   prenom:'ZÉFÉRINO', email:'rbf38.costa@gmail.com'},
+    {id:'cheffelipe',  prenom:'FELIPE',   email:'rbf38.felipe@gmail.com'},
+    {id:'chefmario',   prenom:'MARIO',    email:'rbf38.mario@gmail.com'},
+    {id:'chefjose',    prenom:'JOSÉ',     email:'rbf38.jose@gmail.com'},
+    {id:'chefteddy',   prenom:'TEDDY',    email:'rbf38.teddy@gmail.com'}
+];
+function isChefRole(u) { return !!u && u.indexOf('chef') === 0; }
+function getChefPrenom(id) {
+    for (var i = 0; i < CHEFS_CHANTIER.length; i++) if (CHEFS_CHANTIER[i].id === id) return CHEFS_CHANTIER[i].prenom;
+    return '';
+}
+(function renderChefLoginButtons() {
+    var zone = document.getElementById('chefs-login-zone');
+    if (!zone) return;
+    zone.innerHTML = CHEFS_CHANTIER.map(function(c) {
+        return '<button class="btn-main" style="background:#0d9488;color:white;" onclick="askCode(\''+c.id+'\')">'+c.prenom+'</button>';
+    }).join('');
+})();
+// Liste fermee : identique dans l'editeur de mission et la fiche chantier
+function chefChantierOptionsHtml() {
+    return '<option value="">-- Non specifie --</option>' + CHEFS_CHANTIER.map(function(c) {
+        return '<option value="'+c.id+'">'+c.prenom+'</option>';
+    }).join('');
+}
+(function populateChefChantierSelects() {
+    document.querySelectorAll('.chef-chantier-sel').forEach(function(sel) { sel.innerHTML = chefChantierOptionsHtml(); });
+})();
+
 /* =========================================
    NOTIFICATIONS PUSH (Web Push natif + Cloudflare Worker)
 ========================================= */
@@ -770,7 +823,11 @@ function sendTargetedPush(key, taskData, action) {
         var allSubs    = [];
         var driverSubs = [];
         var depotSubs  = [];
+        var chefSubs   = [];
         var seenEndpoints = {}; // Deduplication : 1 seul envoi par endpoint
+
+        // Chef de chantier concerne par cette mission (champ CHEF DE CHANTIER, id direct)
+        var concernedChefId = isFuture ? (taskData.chefChantier || null) : null;
 
         for (var u in data) {
             try {
@@ -793,13 +850,15 @@ function sendTargetedPush(key, taskData, action) {
                     driverSubs.push(subWithMobile);
                 } else if (realRole === 'depot' && taskData.toDepot && isFuture) {
                     depotSubs.push(subWithMobile);
+                } else if (concernedChefId && realRole === concernedChefId) {
+                    chefSubs.push(subWithMobile);
                 }
             } catch(e) {}
         }
 
-        var targets = allSubs.concat(driverSubs).concat(depotSubs);
+        var targets = allSubs.concat(driverSubs).concat(depotSubs).concat(chefSubs);
         if (!targets.length) { console.log('Aucun destinataire push'); return; }
-        console.log('Push:', targets.length, 'dest (admin:'+allSubs.length+', chauffeur:'+driverSubs.length+', depot:'+depotSubs.length+')');
+        console.log('Push:', targets.length, 'dest (admin:'+allSubs.length+', chauffeur:'+driverSubs.length+', depot:'+depotSubs.length+', chef:'+chefSubs.length+')');
 
         // Sauvegarder le message dans Firebase avant d'envoyer le push
         // Le Service Worker le lira via l'API REST Firebase
@@ -881,6 +940,7 @@ var USER_EMAILS = {
     nicola : 'nicola@rbf-transport.fr',
     depot  : 'cedric@rbf-transport.fr'
 };
+CHEFS_CHANTIER.forEach(function(c) { USER_EMAILS[c.id] = c.email; });
 
 function askCode(u) {
     var p = prompt('CODE ' + u.toUpperCase());
@@ -912,6 +972,8 @@ function login(u) {
     } else if (u === 'depot') {
         document.getElementById('btn-notif').classList.remove('hidden');
         document.getElementById('print-week-zone').classList.remove('hidden');
+    } else if (isChefRole(u)) {
+        document.getElementById('btn-notif').classList.remove('hidden');
     } else {
         document.getElementById('driver-tools-zone').classList.remove('hidden');
         document.getElementById('btn-notif').classList.remove('hidden');
@@ -1024,7 +1086,7 @@ function render() {
             document.getElementById('h'+i).innerHTML = days[i]+' '+lbl;
         }
     }
-    if (state.curU === 'admin' || state.curU === 'depot') renderAdminView(hList);
+    if (state.curU === 'admin' || state.curU === 'depot' || isChefRole(state.curU)) renderAdminView(hList);
     else renderDriverView(days, hList);
 }
 
@@ -1070,9 +1132,11 @@ function renderAdminView(hList) {
     document.getElementById('v-admin').classList.remove('hidden');
     document.getElementById('v-driver').classList.add('hidden');
     var isDepot = state.curU === 'depot';
+    var isChef  = isChefRole(state.curU);
     var h = "";
     ALL_USERS.forEach(function(u) {
-        var dNmap={interne:'DAMIEN',depot:'DÉPÔT',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT (3T500)'};
+        if (isChef && CHEF_VISIBLE_ROWS.indexOf(u.id) === -1) return;
+        var dNmap={interne:'TRANSPORTS INTERNES',depot:'DÉPÔT',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'TRANSPORTS EXTERNES',divers:'DIVERS INTERVENTIONS',instal:'INSTAL','3t500':'DEPOT (LIVRAISON 3T500)'};
         h += '<tr><td class="user-cell">'+(dNmap[u.id]||u.id.toUpperCase())+'</td>';
         for (var dI = 0; dI < 6; dI++) {
             h += '<td>';
@@ -1119,6 +1183,9 @@ function renderAdminView(hList) {
                 if (dta.conducteur) {
                     txt += '<div style="font-size:8px;color:#7c3aed;margin-top:2px;font-weight:bold;">👷 COND. : '+dta.conducteur+'</div>';
                 }
+                if (dta.chefChantier) {
+                    txt += '<div style="font-size:8px;color:#0d9488;margin-top:2px;font-weight:bold;">🦺 CHEF : '+getChefPrenom(dta.chefChantier)+'</div>';
+                }
                 // Matos pour admin uniquement
                 if (state.curU === 'admin' && dta.matos) {
                     txt += '<div style="border-top:1px dashed #ccc;margin-top:4px;padding-top:4px;font-size:9px;color:#166534;">'+dta.matos+'</div>';
@@ -1139,7 +1206,7 @@ function renderAdminView(hList) {
                         ltBadge = '<span style="float:right;background:#10b981;color:white;font-size:8px;padding:1px 4px;border-radius:4px;margin-left:4px;">📋</span>';
                     }
                 }
-                var cardClick = isDepot ? '' : 'onclick="openEd(\''+k+'\')"';
+                var cardClick = (isDepot || isChef) ? '' : 'onclick="openEd(\''+k+'\')"';
                 h += '<div class="slot '+(dta.text||dta.isConge?'filled':'')+' '+(dta.toDepot?'is-to-depot':'')+' '+(dta.isConge?'is-conge':'')+'" style="'+st+'" '+cardClick+'>'+ltBadge+txt+filesHtml+'</div>';
             }
             h += '</td>';
@@ -1194,7 +1261,8 @@ function renderDriverView(days, hList) {
                 var ltKey2 = state.curY+'_'+state.curW+'_'+state.curU+'_'+dI+'_s'+s;
                 var ltBtnHtml = LISTES_CACHE[ltKey2] ? '<button onclick="viewListeTransport(\''+ltKey2+'\')" style="display:block;width:100%;margin-top:8px;padding:8px;background:#fffbeb;color:#92400e;border:1px solid #fde68a;border-radius:8px;text-align:center;font-size:11px;font-weight:bold;cursor:pointer;">📋 LISTE DE TRANSPORT</button>' : '';
                 var condHtml = dta.conducteur ? '<div style="font-size:11px;color:#7c3aed;font-weight:bold;margin-top:6px;">👷 Conducteur de travaux : '+dta.conducteur+'</div>' : '';
-                cards += '<div style="padding:15px;background:white;margin-bottom:10px;border-radius:12px;border-left:5px solid '+borderColor+';box-shadow:0 2px 5px rgba(0,0,0,0.05);">'+truckHtml+ch1Title+'<p style="margin:8px 0;font-size:13px;">'+dta.text+'</p>'+(dta.matos?'<div style="background:#f0fdf4;padding:8px;border-radius:8px;font-size:11px;"><b>LOGISTIQUE :</b> '+dta.matos+'</div>':'')+condHtml+fl+maps1+ch2Html+ltBtnHtml+'</div>';
+                var chefHtml = dta.chefChantier ? '<div style="font-size:11px;color:#0d9488;font-weight:bold;margin-top:6px;">🦺 Chef de chantier : '+getChefPrenom(dta.chefChantier)+'</div>' : '';
+                cards += '<div style="padding:15px;background:white;margin-bottom:10px;border-radius:12px;border-left:5px solid '+borderColor+';box-shadow:0 2px 5px rgba(0,0,0,0.05);">'+truckHtml+ch1Title+'<p style="margin:8px 0;font-size:13px;">'+dta.text+'</p>'+(dta.matos?'<div style="background:#f0fdf4;padding:8px;border-radius:8px;font-size:11px;"><b>LOGISTIQUE :</b> '+dta.matos+'</div>':'')+condHtml+chefHtml+fl+maps1+ch2Html+ltBtnHtml+'</div>';
             }
         }
         v.innerHTML += '<div style="margin-bottom:15px;"><b style="color:var(--blue);font-size:15px;border-left:4px solid var(--yellow);padding-left:8px;">'+days[dI]+' '+fmtDate(dD)+'</b>'+(hList[dI]?'<span class="holiday-badge" style="display:inline-block;margin-left:10px;">'+hList[dI]+'</span>':'')+'<div style="margin-top:8px;">'+(cards||'<p style="color:#94a3b8;font-size:11px;">Aucune mission</p>')+'</div></div>';
@@ -1206,7 +1274,7 @@ function renderDriverView(days, hList) {
 ========================================= */
 function printFullWeek() {
     var isDepot = state.curU === 'depot';
-    var dNmap = {interne:'DAMIEN',depot:'DÉPÔT',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT\n(3T500)'};
+    var dNmap = {interne:'TRANSPORTS\nINTERNES',depot:'DÉPÔT',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'TRANSPORTS\nEXTERNES',divers:'DIVERS\nINTERVENTIONS',instal:'INSTAL','3t500':'DEPOT\n(LIVRAISON 3T500)'};
     var days = ['LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
     var dayDates = [];
     for (var i = 0; i < 6; i++) dayDates.push(fmtDate(getDateFromWeek(state.curW, state.curY, i)));
@@ -1334,6 +1402,7 @@ function printFullWeek() {
                     if (dta.adresse2) cellHtml += '<div class="mc-addr">📍 '+dta.adresse2+'</div>';
                 }
                 if (dta.conducteur) cellHtml += '<div class="mc-cond">👷 '+dta.conducteur+'</div>';
+                if (dta.chefChantier) cellHtml += '<div class="mc-cond" style="color:#0d9488;">🦺 '+getChefPrenom(dta.chefChantier)+'</div>';
                 if (dta.transporteur) cellHtml += '<span class="mc-trsp">🚚 '+dta.transporteur+'</span>';
                 if (LISTES_CACHE[k]) cellHtml += '<span class="mc-badge">📋 LISTE</span>';
                 if (dta.files && dta.files.length > 0) cellHtml += '<div class="mc-files">📎 '+dta.files.length+' fichier(s)</div>';
@@ -1410,10 +1479,13 @@ function openEd(k) {
     var canHoliday = !k.includes('externe') && !k.includes('instal') && !k.includes('divers') && !k.includes('3t500');
     var isExterne  = k.includes('externe');
     var is3t500    = k.includes('3t500');
+    var isChefRow  = k.includes('_interne_') || k.includes('_externe_') || k.includes('_divers_') || k.includes('_3t500_');
     document.getElementById('zone-matos').classList.toggle('hidden', !isJN);
     document.getElementById('zone-truck').classList.toggle('hidden', !isTruck);
     document.getElementById('zone-conge-checkbox').classList.toggle('hidden', !canHoliday);
     document.getElementById('zone-transporteur').classList.toggle('hidden', !isExterne);
+    document.getElementById('zone-chef-chantier').classList.toggle('hidden', !isChefRow);
+    document.getElementById('e-chef-chantier-sel').value = isChefRow ? (d.chefChantier || '') : '';
     // Pour la ligne DEPOT (3T500) : toujours visible cote depot, pas besoin de cocher la case
     var zoneDepotCb = document.getElementById('zone-depot-checkbox');
     if (zoneDepotCb) zoneDepotCb.classList.toggle('hidden', is3t500);
@@ -1513,7 +1585,8 @@ function saveTask() {
             var cSel = document.getElementById('e-conducteur-sel');
             if (cSel && cSel.value === '__libre__') return (document.getElementById('e-conducteur-libre').value || '').trim();
             return cSel ? cSel.value : '';
-        })()
+        })(),
+        chefChantier : (isConge || document.getElementById('zone-chef-chantier').classList.contains('hidden')) ? '' : document.getElementById('e-chef-chantier-sel').value
     };
     db.ref('planning_v18/'+state.curK).set(taskData)
         .then(function() {
@@ -1643,7 +1716,7 @@ setInterval(refreshUndoBtn, 60000);
 ========================================= */
 function saveHistorique(action, key, before, after) {
     var parts = key.split('_');
-    var dNmap = {interne:'DAMIEN', cedric:'CEDRIC', jadiel:'JADIEL', nicola:'NICOLA', externe:'EXTERNE', divers:'DIVERS', instal:'INSTAL', '3t500':'DEPOT'};
+    var dNmap = {interne:'TRANSPORTS INTERNES', cedric:'CEDRIC', jadiel:'JADIEL', nicola:'NICOLA', externe:'TRANSPORTS EXTERNES', divers:'DIVERS INTERVENTIONS', instal:'INSTAL', '3t500':'DEPOT (LIVRAISON 3T500)'};
     var days  = ['Lun','Mar','Mer','Jeu','Ven','Sam'];
     var entry = {
         ts      : Date.now(),
@@ -1779,6 +1852,7 @@ function loadJournalModifs() {
                 if (restoreData.text)         detailHtml += '<div><b>Mission :</b> '+restoreData.text+'</div>';
                 if (restoreData.truck)        detailHtml += '<div><b>Véhicule :</b> '+restoreData.truck+'</div>';
                 if (restoreData.conducteur)   detailHtml += '<div><b>Conducteur :</b> '+restoreData.conducteur+'</div>';
+                if (restoreData.chefChantier) detailHtml += '<div><b>Chef de chantier :</b> '+getChefPrenom(restoreData.chefChantier)+'</div>';
                 if (restoreData.transporteur) detailHtml += '<div><b>Transporteur :</b> '+restoreData.transporteur+'</div>';
                 if (restoreData.matos)        detailHtml += '<div><b>Logistique :</b> '+restoreData.matos+'</div>';
                 if (restoreData.files && restoreData.files.length > 0) {
@@ -2378,11 +2452,29 @@ function onChantierSel() {
         adresseEl.style.display = '';
         adresseEl.value = CHANTIERS_CACHE[val].adresse || '';
         chantierHidden.value = val;
+        autoFillConducteur(CHANTIERS_CACHE[val].conducteur || '');
+        if (!document.getElementById('zone-chef-chantier').classList.contains('hidden')) {
+            document.getElementById('e-chef-chantier-sel').value = CHANTIERS_CACHE[val].chefChantier || '';
+        }
     } else {
         zoneAutre.classList.add('hidden');
         adresseEl.style.display = '';
         adresseEl.value = ''; chantierHidden.value = '';
     }
+}
+
+// Pre-remplit le CONDUCTEUR DE TRAVAUX avec le conducteur par defaut du chantier
+// choisi. L'admin reste libre de le modifier ensuite.
+function autoFillConducteur(nom) {
+    if (!nom) return;
+    var cSel = document.getElementById('e-conducteur-sel');
+    if (!cSel) return;
+    cSel.value = nom;
+    if (cSel.value !== nom) {
+        cSel.value = '__libre__';
+        document.getElementById('e-conducteur-libre').value = nom;
+    }
+    onConducteurSel();
 }
 
 // ── 2e CHANTIER ──────────────────────────────────────────────────────────
@@ -2435,8 +2527,22 @@ function onChantier2Sel() {
 }
 
 function openAddChantier() {
-    document.getElementById('new-chantier-nom').value = '';
-    document.getElementById('new-chantier-adresse').value = '';
+    // Si un chantier existant est deja selectionne, on pre-remplit le formulaire
+    // pour permettre de le modifier (adresse, conducteur par defaut) via le meme bouton "+".
+    var selC = document.getElementById('e-chantier-sel');
+    var curVal = (selC && CHANTIERS_CACHE[selC.value]) ? selC.value : '';
+    var existing = curVal ? CHANTIERS_CACHE[curVal] : null;
+    document.getElementById('new-chantier-nom').value = existing ? existing.nom : '';
+    document.getElementById('new-chantier-adresse').value = existing ? (existing.adresse || '') : '';
+    var condSel = document.getElementById('new-chantier-conducteur');
+    condSel.innerHTML = '<option value="">-- Non specifie --</option>';
+    Object.keys(CONDUCTEURS_CACHE).sort().forEach(function(nom) {
+        var opt = document.createElement('option');
+        opt.value = nom; opt.textContent = nom;
+        condSel.appendChild(opt);
+    });
+    condSel.value = existing ? (existing.conducteur || '') : '';
+    document.getElementById('new-chantier-chef').value = existing ? (existing.chefChantier || '') : '';
     document.getElementById('add-chantier-overlay').style.display = 'flex';
     setTimeout(function(){ document.getElementById('new-chantier-nom').focus(); }, 100);
 }
@@ -2444,8 +2550,10 @@ function openAddChantier() {
 function saveNewChantier() {
     var nom = document.getElementById('new-chantier-nom').value.trim().toUpperCase();
     var adresse = document.getElementById('new-chantier-adresse').value.trim();
+    var conducteur = document.getElementById('new-chantier-conducteur').value;
+    var chefChantier = document.getElementById('new-chantier-chef').value;
     if (!nom) { showToast('Entrez un nom de chantier', 'error'); return; }
-    db.ref('chantiers_rbf/' + nom).set({ nom: nom, adresse: adresse })
+    db.ref('chantiers_rbf/' + nom).set({ nom: nom, adresse: adresse, conducteur: conducteur, chefChantier: chefChantier })
         .then(function() {
             document.getElementById('add-chantier-overlay').style.display = 'none';
             showToast('Chantier ajouté !');
@@ -2880,7 +2988,7 @@ function showHistory() {
     document.getElementById('history-overlay').style.display = 'flex';
     document.getElementById('history-results').innerHTML = "<div style='text-align:center;padding:20px;'>Chargement...</div>";
 
-    var dNmap = {interne:'DAMIEN',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'EXTERNE',divers:'DIVERS',instal:'INSTAL','3t500':'DEPOT (3T500)',depot:'DÉPÔT'};
+    var dNmap = {interne:'TRANSPORTS INTERNES',cedric:'CEDRIC',jadiel:'JADIEL',nicola:'NICOLA',externe:'TRANSPORTS EXTERNES',divers:'DIVERS INTERVENTIONS',instal:'INSTAL','3t500':'DEPOT (LIVRAISON 3T500)',depot:'DÉPÔT'};
 
     Promise.all([
         db.ref('planning_v18').once('value'),
@@ -2916,13 +3024,13 @@ function showHistory() {
             else fields = [
                 dta.chantier, dta.text, dta.matos, dta.adresse, dta.truck,
                 dta.chantier2, dta.adresse2, dta.conducteur, dta.transporteur,
-                dNmap[p[2]] || '', p[2], ltTxt
+                getChefPrenom(dta.chefChantier), dNmap[p[2]] || '', p[2], ltTxt
             ];
             if (!fields.join(' ').toLowerCase().includes(q)) continue;
             matches.push({
                 key: k, date: getDateFromWeek(w,y,dI), week: w, user: p[2],
                 chantier: dta.chantier||'', text: dta.text||'', matos: dta.matos||'',
-                adresse: dta.adresse||'', truck: dta.truck||'',
+                adresse: dta.adresse||'', truck: dta.truck||'', chefChantier: dta.chefChantier||'',
                 chantier2: dta.chantier2||'', adresse2: dta.adresse2||'',
                 conducteur: dta.conducteur||'', transporteur: dta.transporteur||'',
                 files: dta.files||[], lt: lt[k]||null
@@ -2968,7 +3076,7 @@ function showHistory() {
                 ch2Html = '<div style="margin-top:2px;"><b>2ᵉ chantier :</b> <span style="color:#3730a3;">2▸ '+m.chantier2+'</span></div>'
                         + (m.adresse2?'<div style="margin-top:1px;"><b>Adresse 2 :</b> <span style="color:#dc2626;">'+m.adresse2+'</span></div>':'');
             }
-            var hasDetails = m.adresse||m.truck||m.conducteur||m.transporteur||m.matos||m.chantier2||filesHtml||ltHtml;
+            var hasDetails = m.adresse||m.truck||m.conducteur||m.chefChantier||m.transporteur||m.matos||m.chantier2||filesHtml||ltHtml;
 
             return '<div style="padding:12px;border-bottom:1px solid #eee;background:white;margin-bottom:8px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">'
                 + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
@@ -2985,6 +3093,7 @@ function showHistory() {
                 + (m.adresse?'<div style="margin-top:2px;"><b>Adresse :</b> <span style="color:#dc2626;">'+m.adresse+'</span></div>':'')
                 + ch2Html
                 + (m.conducteur?'<div style="margin-top:2px;"><b>Conducteur :</b> <span style="color:#7c3aed;">'+m.conducteur+'</span></div>':'')
+                + (m.chefChantier?'<div style="margin-top:2px;"><b>Chef de chantier :</b> <span style="color:#0d9488;">'+getChefPrenom(m.chefChantier)+'</span></div>':'')
                 + (m.transporteur?'<div style="margin-top:2px;"><b>Transporteur :</b> '+m.transporteur+'</div>':'')
                 + (m.matos?'<div style="margin-top:2px;background:#f0fdf4;padding:5px;border-radius:4px;"><b>Logistique :</b> '+m.matos+'</div>':'')
                 + filesHtml + ltHtml
