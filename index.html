@@ -639,13 +639,13 @@ var VAPID_PUBLIC_KEY = "BCejATBh5hDLun-J4UrWt9U9VjjCM1uxqvi92X9QyWGsI0ykkwZDsr41
 var PUSH_WORKER_URL  = "https://rbf-notifs.bastien38dominguez.workers.dev";
 
 firebase.initializeApp({
-    apiKey: "AIzaSyB8f5_NGtHX6iPp-reUolnxHH6Du2mUJks",
-    authDomain: "rbf-transport.firebaseapp.com",
-    databaseURL: "https://rbf-transport-default-rtdb.europe-west1.firebasedatabase.app/",
-    projectId: "rbf-transport",
-    storageBucket: "rbf-transport.firebasestorage.app",
-    messagingSenderId: "857293034627",
-    appId: "1:857293034627:web:dfa3390ee0a798638f77b6"
+    apiKey: "AIzaSyCyhC9_CT43Yl9J4RF0KkYmPYT_saW2ld0",
+    authDomain: "rbf-planning.firebaseapp.com",
+    databaseURL: "https://rbf-planning-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "rbf-planning",
+    storageBucket: "rbf-planning.firebasestorage.app",
+    messagingSenderId: "307912733026",
+    appId: "1:307912733026:web:9f178be7ab52a7739b3c3b"
 });
 var db = firebase.database();
 var LISTES_CACHE = {}; // clés des missions ayant une liste de transport
@@ -938,7 +938,7 @@ var USER_EMAILS = {
     cedric : 'cedric@rbf-transport.fr',
     jadiel : 'jadiel@rbf-transport.fr',
     nicola : 'nicola@rbf-transport.fr',
-    depot  : 'cedric@rbf-transport.fr'
+    depot  : 'depot@rbf-transport.fr'
 };
 CHEFS_CHANTIER.forEach(function(c) { USER_EMAILS[c.id] = c.email; });
 
