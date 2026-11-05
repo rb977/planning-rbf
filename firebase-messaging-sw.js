@@ -4,7 +4,7 @@
 // Compatible Chrome, Firefox, Edge, Safari iOS 16.4+
 // ================================================
 
-var FIREBASE_DB_URL = 'https://rbf-transport-default-rtdb.europe-west1.firebasedatabase.app';
+var FIREBASE_DB_URL = 'https://rbf-planning-default-rtdb.europe-west1.firebasedatabase.app';
 
 self.addEventListener('push', function(event) {
     var defaultTitle = 'RBF Planning';
