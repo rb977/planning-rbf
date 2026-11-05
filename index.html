@@ -2795,7 +2795,7 @@ function uploadFile(input) {
             var fd2 = new FormData();
             fd2.append('file', compressedFile);
             fd2.append('upload_preset', 'rbf-preset');
-            fetch('https://api.cloudinary.com/v1_1/dixdmejal/upload', {method:'POST', body:fd2})
+            fetch('https://api.cloudinary.com/v1_1/km0a2kwg/upload', {method:'POST', body:fd2})
                 .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
                 .then(function(data){
                     pz.innerHTML='';
@@ -2807,7 +2807,7 @@ function uploadFile(input) {
     }
     fd.append('file', fileObj);
     fd.append('upload_preset', 'rbf-preset');
-    fetch('https://api.cloudinary.com/v1_1/dixdmejal/upload', {method:'POST', body:fd})
+    fetch('https://api.cloudinary.com/v1_1/km0a2kwg/upload', {method:'POST', body:fd})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             pz.innerHTML = '';
@@ -3260,7 +3260,7 @@ function uploadRepFile(input) {
             var fd2 = new FormData();
             fd2.append('file', compressedFile);
             fd2.append('upload_preset', 'rbf-preset');
-            fetch('https://api.cloudinary.com/v1_1/dixdmejal/upload', {method:'POST', body:fd2})
+            fetch('https://api.cloudinary.com/v1_1/km0a2kwg/upload', {method:'POST', body:fd2})
                 .then(function(r){return r.json();})
                 .then(function(data){
                     pz.innerHTML='';
@@ -3272,7 +3272,7 @@ function uploadRepFile(input) {
     }
     fd.append('file', file);
     fd.append('upload_preset', 'rbf-preset');
-    fetch('https://api.cloudinary.com/v1_1/dixdmejal/upload', {method:'POST', body:fd})
+    fetch('https://api.cloudinary.com/v1_1/km0a2kwg/upload', {method:'POST', body:fd})
         .then(function(r){
             if (!r.ok) throw new Error('HTTP '+r.status);
             return r.json();
